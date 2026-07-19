@@ -124,6 +124,14 @@ circular.cor <- function(angles1, angles2, period = 365) {
 }
 
 
+RS.phase <- function(cos.p, sin.p, cos.a, sin.a) {
+  error <- (circular.diff(phase(cos.a, sin.a), phase(cos.p, sin.p)))
+  RS <- rsq(phase(cos.a, sin.a) + error, phase(cos.a, sin.a))
+  return(RS)
+}
+
+
+
 # counting number of samples by phase within sliding windows
 circular.SW.count <- function(phase, bins, period = 365, range = c(0, period)) {
   w.bins <- period / bins

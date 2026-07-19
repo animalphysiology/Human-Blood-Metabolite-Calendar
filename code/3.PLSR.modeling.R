@@ -25,13 +25,6 @@ ncomp <- 10
 exprained.variance.threshold <- 0.01
 accepted.error <- 30
 
-RS.phase <- function(cos.p, sin.p, cos.a, sin.a) {
-  error <- (circular.diff(phase(cos.a, sin.a), phase(cos.p, sin.p)))
-  RS <- rsq(phase(cos.a, sin.a) + error, phase(cos.a, sin.a))
-  return(RS)
-}
-
-
 ################################################################################
 
 for (subject.out in LETTERS[1:11]) {
@@ -141,23 +134,23 @@ for (subject.out in LETTERS[1:11]) {
   }
 
   ## input data
-  q <- q[, ids]
+  q <- q[test.metadata$Sample, ids]
   error.test <- c()
   ## estimated cos and sin values, phase, amplitude and actual sampling day
-  for (sample in test.metadata$Sample) {
-    c.coord <- sum(B.c * q[sample, ])
-    s.coord <- sum(B.s * q[sample, ])
+  c.coord <- q %*% B.c
+  s.coord <- q %*% B.s
 
-    plsr.pred[sample, "cos.coordinate"] <- c.coord
-    plsr.pred[sample, "sin.coordinate"] <- s.coord
+  plsr.pred[rownames(q), "cos.coordinate"] <- c.coord
+  plsr.pred[rownames(q), "sin.coordinate"] <- s.coord
 
-    plsr.pred[sample, "amplitude"] <- amplitude(c.coord, s.coord)
-    plsr.pred[sample, "predicted"] <- phase(c.coord, s.coord)
-    plsr.pred[sample, "actual"] <- subset(test.metadata, Sample == sample)$day_of_year
-  }
+  plsr.pred[rownames(q), "amplitude"] <- amplitude(c.coord, s.coord)
+  plsr.pred[rownames(q), "predicted"] <- phase(c.coord, s.coord)
+  plsr.pred[rownames(q), "actual"] <- test.metadata$day_of_year
+
 
   test.error <- plsr.pred[plsr.pred$Subject == subject.out, c("cos.coordinate", "sin.coordinate", "cos.a", "sin.a")]
-  test.metric <- RS.phase(test.error[[1]], test.error[[2]], test.error[[3]], test.error[[4]])
+  test.metric <- RS.phase(test.error[[1]], test.error[[2]], test.error[[3]], test.error[[4]]) |>
+    as.numeric()
   print(c(
     paste("model", subject.out),
     paste("optimal cos #components=", opt.c),
